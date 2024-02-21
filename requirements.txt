@@ -1,3 +1,5 @@
+dbt-core==1.6.5
+dbt-postgres==1.6.5
 fastparquet=2023.8.0
 minio==7.1.16
 deltalake==0.10.2
@@ -8,3 +10,4 @@ pydeequ==1.0.1
 PyYAML==6.0.1
 pyspark==3.3.2
 python-dotenv==1.0.0
+SQLAlchemy==2.0.9
