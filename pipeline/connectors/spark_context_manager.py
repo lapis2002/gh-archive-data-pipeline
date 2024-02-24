@@ -3,6 +3,23 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 import delta
 
+def load_spark_config(config):
+    spark_minio_conf = {
+        "spark.jars": """jars/postgresql-42.6.0.jar, 
+                         jars/deequ-2.0.3-spark-3.3.jar, 
+                         jars/hadoop-aws-2.8.0.jar, 
+                         jars/aws-java-sdk-s3-1.11.93.jar,
+                         jars/aws-java-sdk-core-1.11.93.jar""",
+        "spark.hadoop.fs.s3a.aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
+        "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+        "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+    }
+
+    for k, v in config.items():
+        spark_minio_conf[k] = v
+
+    return spark_minio_conf
+
 def load_minio_config(spark_context, minio_cfg):
     spark_context._jsc.hadoopConfiguration().set("fs.s3a.access.key", minio_cfg.get("access_key"))
     spark_context._jsc.hadoopConfiguration().set("fs.s3a.secret.key", minio_cfg.get("secret_key"))
@@ -24,7 +41,9 @@ def get_spark_session(config, run_id="Spark IO Manager", spark_master_url = "loc
         # conf.set("spark.driver.bindAddress", "localhost")
         # conf.set("spark.ui.port", "4050")
 
-        for k, v in config.items():
+        spark_minio_conf = load_spark_config(config)
+
+        for k, v in spark_minio_conf.items():
             conf.set(k, v)
         
         builder = (
