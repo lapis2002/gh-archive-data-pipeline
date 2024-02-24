@@ -1,13 +1,11 @@
-from connectors import minio_manager, spark_context_manager
-from utils import load_configuration
-from pydeequ.profiles import ColumnProfilerRunner
 import requests
 import gzip
-from minio import Minio
-from glob import glob
 import os
-from schema import GH_ARCHIVE_SCHEMA
 import shutil
+
+from connectors import minio_manager, spark_context_manager
+from utils import load_configuration
+from schema import GH_ARCHIVE_SCHEMA
 
 CFG_FILE = 'resources/config.yaml'
 
@@ -108,16 +106,17 @@ def get_data(cfg) -> None:
         # Write to Minio
         df.write\
             .format("delta")\
-            .option("overwriteSchema", "true")\
             .mode("overwrite")\
+            .option("overwriteSchema", "true")\
             .save(outputPath)
-
-        print(f"Data saved to {outputPath}")
-
+        
+        df = spark.read.format("delta").load(outputPath)
+        df.printSchema()
     # clean up the data folder
-    print(f"Cleanup data files after loading to Minio")
+    print(f"Clean up data files after loading to Minio")
     shutil.rmtree(folder_path, ignore_errors=False, onerror=None)
 
+    
 
 if __name__ == "__main__":
     # main()
