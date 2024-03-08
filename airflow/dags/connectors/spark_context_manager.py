@@ -3,13 +3,16 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 import delta
 
+RESOURCES_PATH = "/opt/airflow/resources"
+SPARK_JARS = f"""{RESOURCES_PATH}/jars/postgresql-42.6.0.jar, 
+                 {RESOURCES_PATH}/jars/deequ-2.0.3-spark-3.3.jar, 
+                 {RESOURCES_PATH}/jars/hadoop-aws-2.8.0.jar, 
+                 {RESOURCES_PATH}/jars/aws-java-sdk-s3-1.11.93.jar,
+                 {RESOURCES_PATH}/jars/aws-java-sdk-core-1.11.93.jar,
+                 {RESOURCES_PATH}/jars/trino-jdbc-379.jar"""
 def load_spark_config(config):
     spark_minio_conf = {
-        "spark.jars": """jars/postgresql-42.6.0.jar, 
-                         jars/deequ-2.0.3-spark-3.3.jar, 
-                         jars/hadoop-aws-2.8.0.jar, 
-                         jars/aws-java-sdk-s3-1.11.93.jar,
-                         jars/aws-java-sdk-core-1.11.93.jar""",
+        "spark.jars": SPARK_JARS,
         "spark.hadoop.fs.s3a.aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
         "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
         "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",

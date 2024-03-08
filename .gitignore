@@ -1,5 +1,6 @@
 resources/sample_data
-
+airflow/resources
+airflow/logs
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
