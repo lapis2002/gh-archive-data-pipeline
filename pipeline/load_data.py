@@ -7,6 +7,8 @@ from connectors import minio_manager, spark_context_manager
 from utils import load_configuration
 from schema import GH_ARCHIVE_SCHEMA
 
+from pyspark.sql.functions import col
+
 CFG_FILE = 'resources/config.yaml'
 
 def download_data(cfg) -> None:
@@ -83,7 +85,8 @@ def get_data(cfg) -> None:
                 .option("timestampNTZFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'")\
                 .json(json_file_path)
 
-        df = spark.createDataFrame(df.rdd, GH_ARCHIVE_SCHEMA) 
+        # df = spark.createDataFrame(df.rdd, GH_ARCHIVE_SCHEMA) 
+
         df = df.drop("payload")
         df = df.drop("other")
         df.show(10)        
@@ -112,12 +115,32 @@ def get_data(cfg) -> None:
         
         df = spark.read.format("delta").load(outputPath)
         df.printSchema()
+        print("Data loaded to Minio")
+        
+        database="github_archive"
+        user="k6"
+        password="k6"
+        
+        delta_df = spark.read.format("delta").load(outputPath)
+        
+        users_df = delta_df.select("actor.*").distinct()
+        users_df.show   (10)
+        users_df\
+            .write\
+            .format("jdbc")\
+            .option("url", f"jdbc:postgresql://localhost:5432/{database}")\
+            .option("driver", "org.postgresql.Driver")\
+            .option("dbtable", "users")\
+            .option("isolationLevel","NONE")\
+            .option("user", f"{user}")\
+            .option("password", f"{password}")\
+            .mode("overwrite")\
+            .save()
+    
     # clean up the data folder
     print(f"Clean up data files after loading to Minio")
     shutil.rmtree(folder_path, ignore_errors=False, onerror=None)
-
     
-
 if __name__ == "__main__":
     # main()
     cfg = load_configuration.load_cfg_file(CFG_FILE)
