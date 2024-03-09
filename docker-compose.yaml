@@ -61,7 +61,7 @@ services:
       AZURE_WASB_ACCESS_KEY: ""
     depends_on:
       - metastore_db
-  
+
   postgresql:
     image: debezium/postgres:13
     platform: linux/amd64
@@ -75,7 +75,7 @@ services:
     volumes: 
       - dbt_postgresql_data:/var/lib/postgresql/data 
   # Parquet files stored in MinIO object storage
-  
+
   minio:
     image: minio/minio
     container_name: datalake-minio
