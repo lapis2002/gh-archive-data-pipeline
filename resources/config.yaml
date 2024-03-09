@@ -1,0 +1,15 @@
+fake_data:
+  folder_path: ./sample_data/gh-archive
+  num_files: 3
+
+timestamp:
+  year: 2019
+  month: 01
+  day: 02
+  hour: 15
+
+datalake:
+  endpoint: localhost:9000
+  bucket_name: gh-archive-sample-data
+  access_key: minio_access_key
+  secret_key: minio_secret_key
