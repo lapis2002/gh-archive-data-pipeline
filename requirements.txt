@@ -1,20 +1,16 @@
-# apache-airflow[celery]==2.8.2
 apache-airflow-providers-amazon==8.18.0
-# apache-airflow[cncf.kubernetes]==8.0.0
-minio==7.1.16
+apache-flink==1.18.1
+confluent-kafka==2.2.0
 deltalake==0.10.2
 delta-spark==2.3.0
+fastparquet==2023.8.0
 nltk==3.8.1
-numpy
-pandas
-fastparquet=2023.8.0
 minio==7.1.16
-deltalake==0.10.2
 nltk==3.8.1
-numpy==1.26.0
-pandas==2.1.0
+numpy==1.21.6
 pydeequ==1.0.1
 PyYAML==6.0.1
 pyspark==3.3.2
 python-dotenv==1.0.0
+python-schema-registry-client==2.4.1
 # virtualenv==20.25.1
