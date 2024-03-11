@@ -62,6 +62,10 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW__SCHEDULER__STATSD_ON: True
+    AIRFLOW__SCHEDULER__STATSD_HOST: statsd-exporter
+    AIRFLOW__SCHEDULER__STATSD_PORT: 8125
+    AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -314,6 +318,22 @@ services:
       - "2376:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
+  # statsd-exporter:
+  #     container_name: prom-statsd-exporter
+  #     ports:
+  #         - 9123:9102
+  #         - 8125:8125/udp
+  #     volumes:
+  #         - $PWD/airflow/statsd/mapping.yaml:/tmp/mapping.yaml
+  #     image: prom/statsd-exporter
+  #     command: --statsd.mapping-config=/tmp/mapping.yaml --statsd.listen-udp=:8125
+  #         --web.listen-address=:9102
+  statsd-exporter:
+        image: prom/statsd-exporter
+        container_name: airflow-statsd-exporter
+        command: "--statsd.listen-udp=:8125 --web.listen-address=:9102"
+        ports:
+            - 9123:9102
+            - 8125:8125/udp
 volumes:
   postgres-db-volume:
