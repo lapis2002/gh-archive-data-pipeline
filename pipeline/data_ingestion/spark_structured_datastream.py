@@ -1,5 +1,5 @@
 import io
-import fastavro
+
 
 from schema_registry.client import SchemaRegistryClient, schema
 
@@ -7,6 +7,8 @@ from pyspark.sql.functions import col
 from pyspark.sql.avro.functions import from_avro
 
 from pyspark.sql import SparkSession
+
+// from connectors import spark_context_manager
 
 def get_schema_from_schema_registry(schema_registry_url, schema_registry_subject):
     sr = SchemaRegistryClient({'url': schema_registry_url})
@@ -52,6 +54,7 @@ def main():
             .readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", "http://localhost:9092") \
+            .option("subscribe", "streaming_gh_events") \
             .option("subscribe", "avro_streaming_gh_events") \
             .load()
             # .select(
@@ -60,8 +63,16 @@ def main():
             #         subject = "t-value",
             #         schemaRegistryAddress = "http://schema-registry:8081"
             #     ).alias("value")
-            # )
-    query = df.writeStream.format("console").start()
+            # )    
+    bucket = "gh-archive-sample-data"
+    folder_name = "2015-01-02"
+    outputPath = f"s3a://{bucket}/{folder_name}"
+    # query = df.writeStream.format("console").start()
+    query = df.writeStream\
+        .format("delta")\
+        .outputMode("append")\
+        .option("checkpointLocation", "/tmp/delta/events/_checkpoints/")\
+        .toTable(outputPath)
     import time
     time.sleep(60) # sleep 10 seconds
     query.stop()
