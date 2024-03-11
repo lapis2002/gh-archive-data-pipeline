@@ -5,32 +5,27 @@ import shutil
 from datetime import datetime
 
 from airflow.decorators import dag, task
-from airflow.operators.bash import BashOperator
 from airflow.models.xcom_arg import XComArg
-from airflow.providers.apache.spark.operators.spark_jdbc import SparkJDBCOperator
+from airflow.models import Variable
 
 from pyspark.sql.functions import col
 
 from connectors import minio_manager, spark_context_manager
-from utils import load_configuration
 from schema import GH_ARCHIVE_SCHEMA
 
 ROOT_DATA_PATH = "/opt/airflow/resources"
-CFG_FILE = f"{ROOT_DATA_PATH}/config.yaml"
 
 @task()
-def setup_minio(cfg, ti=None) -> None:
+def setup_minio(ti=None) -> None:
     minio_conf = {
-        "endpoint_url": cfg.get("endpoint"),
-        "access_key": cfg.get("access_key"),
-        "secret_key": cfg.get("secret_key"),
+        "endpoint_url": Variable.get("minio_endpoint"),
+        "access_key": Variable.get("minio_access_key"),
+        "secret_key": Variable.get("minio_secret_key"),
     }
 
-    print("Creating Minio client...")
-    bucket = cfg.get("bucket_name")
-
-    print("Start creating spark session")
-
+    bucket = Variable.get("minio_bucket")
+    
+    print("Checking if the bucket exists...")
     with minio_manager.get_minio_client(minio_conf) as client:    
         found = client.bucket_exists(bucket_name=bucket)
         if not found:
@@ -39,8 +34,13 @@ def setup_minio(cfg, ti=None) -> None:
             print(f'Bucket {bucket} already exists, skip creating!')
             
 @task(multiple_outputs=True)
-def get_file_path(cfg, ti=None) -> None:
-    year, month, day, hour = cfg["timestamp"]["year"], cfg["timestamp"]["month"], cfg["timestamp"]["day"], cfg["timestamp"]["hour"]
+def get_file_path(ti=None) -> None:
+    date = datetime.strptime(os.getenv("AIRFLOW_CTX_EXECUTION_DATE"), "%Y-%m-%dT%H:%M:%S.%f%z")
+    # since we cannot get the data for the current year, use the previous 5 years
+    year = str(int(date.year)-10)
+    month = date.month
+    day = date.day
+    hour = date.hour
     folder_name = f"{year}-{month:02d}-{day:02d}"
     folder_path = f"{ROOT_DATA_PATH}/{folder_name}"
     
@@ -90,19 +90,19 @@ def download_to_bronze(ti=None) -> None:
     print(f"Data extracted to {json_file_path}")
 
 @task()
-def load_to_silver(cfg, ti=None) -> None:
+def load_to_silver(ti=None) -> None:
     json_file_name = ti.xcom_pull(task_ids="get_file_path", key="json_file_name")
     folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
 
     json_file_path = f"{ROOT_DATA_PATH}/{folder_name}/{json_file_name}"
     
     minio_conf = {
-        "endpoint_url": cfg.get("endpoint"),
-        "access_key": cfg.get("access_key"),
-        "secret_key": cfg.get("secret_key"),
+        "endpoint_url": Variable.get("minio_endpoint"),
+        "access_key": Variable.get("minio_access_key"),
+        "secret_key": Variable.get("minio_secret_key"),
     }
 
-    bucket = cfg.get("bucket_name")
+    bucket = Variable.get("minio_bucket")
 
     with spark_context_manager.get_spark_session({}, "data_lake") as spark:
         print("Spark session created")
@@ -147,21 +147,19 @@ def load_to_silver(cfg, ti=None) -> None:
         df.printSchema()
 
 @task()
-def write_tables_in_gold(cfg, ti=None) -> None:
-    database=os.getenv("POSTGRES_DB")
-    user=os.getenv("POSTGRES_USER")
-    password=os.getenv("POSTGRES_PASSWORD")
-    database="github_archive"
-    user="k6"
-    password="k6"
+def write_tables_in_gold(ti=None) -> None:
+    database=Variable.get("postgres_db")
+    user=Variable.get("postgres_user")
+    password=Variable.get("postgres_password")
+
     delta_file_path = ti.xcom_pull(task_ids="load_to_silver", key="bucket_path")
     minio_conf = {
-        "endpoint_url": cfg.get("endpoint"),
-        "access_key": cfg.get("access_key"),
-        "secret_key": cfg.get("secret_key"),
+        "endpoint_url": Variable.get("minio_endpoint"),
+        "access_key": Variable.get("minio_access_key"),
+        "secret_key": Variable.get("minio_secret_key"),
     }
 
-    bucket = cfg.get("bucket_name")
+    bucket = Variable.get("minio_bucket")
 
     with spark_context_manager.get_spark_session({}, "data_lake") as spark:
         print("Spark session created")
@@ -240,12 +238,10 @@ def clean_up(ti=None) -> None:
     print("Clean up data files after loading to Minio")
     folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
     shutil.rmtree(f"{ROOT_DATA_PATH}/{folder_name}", ignore_errors=False, onerror=None)
-                  
-@dag(dag_id="data_pipeline", start_date=datetime(2022, 1, 1), schedule="0 * * * *", catchup=False, tags=['load'])
+
+
+@dag(dag_id="data_pipeline", start_date=datetime(2024, 1, 1), schedule="0 * * * *", catchup=False, tags=['load'])
 def data_pipeline():
-    cfg = load_configuration.load_cfg_file(CFG_FILE)
-
-
-    [get_file_path(cfg) >> download_to_bronze(), setup_minio(cfg["datalake"])] >> load_to_silver(cfg["datalake"]) >> clean_up() >> write_tables_in_gold(cfg["datalake"])
+    [get_file_path() >> download_to_bronze(), setup_minio()] >> load_to_silver() >> clean_up() >> write_tables_in_gold()
 
 data_pipeline()   
