@@ -1,3 +1,5 @@
+install:
+	pip install -r requirements.txt
 build:
 	docker compose -f monitoring/prom-graf-docker-compose.yaml up -d
 	docker compose -f docker-compose.yaml -f dockers/kafka-flink-docker-compose.yaml -f dockers/airflow-docker-compose.yaml up -d
