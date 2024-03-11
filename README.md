@@ -7,6 +7,21 @@
 ## Design
 
 ### Pipeline 
+#### Source
+##### Batch data
+`https://www.gharchive.org/`: Each archive contains JSON encoded events as reported by the GitHub API, and these events are aggregated into hourly archives, which we can access with any HTTP client
+
+| Query                            | Command                                                          |
+|----------------------------------|------------------------------------------------------------------|
+| Activity for 1/1/2015 @ 3PM UTC  | wget https://data.gharchive.org/2015-01-01-15.json.gz            |
+| Activity for 1/1/2015            | wget https://data.gharchive.org/2015-01-01-{0..23}.json.gz       |
+| Activity for all of January 2015 | wget https://data.gharchive.org/2015-01-{01..31}-{0..23}.json.gz |
+
+
+Data will be pulled from https://www.gharchive.org/ every day scheduled by Airflow.
+
+##### Stream data
+We setup a Kafka producer to produce data, silmulaing real-time data. Messages are Avro serialized to reduce the size and emitted to topics every 10 second.
 
 ### Datalake & Datawarehouse
 
@@ -57,7 +72,7 @@
 
 ### Setup data infrastructure local 
 
-#### Exposed Endpoints
+### Exposed Endpoints
 
 Minio: `localhost:9001/` (`minio_access_key`/`minio_secret_key`)
 
