@@ -1,5 +1,4 @@
 import io
-import fastavro
 
 from schema_registry.client import SchemaRegistryClient, schema
 
@@ -8,6 +7,8 @@ from pyspark.sql.avro.functions import from_avro
 
 from pyspark.sql import SparkSession
 
+from connectors import spark_context_manager
+
 def get_schema_from_schema_registry(schema_registry_url, schema_registry_subject):
     sr = SchemaRegistryClient({'url': schema_registry_url})
     latest_version = sr.get_latest_version(schema_registry_subject)
@@ -15,22 +16,6 @@ def get_schema_from_schema_registry(schema_registry_url, schema_registry_subject
     return sr, latest_version
 
 def main():
-    # bytes_io = io.BytesIO(msg)
-    # bytes_io.seek(0)
-    # msg_decoded = fastavro.schemaless_reader(bytes_io, schema)
-
-    # session = SparkSession.builder \
-    #                   .appName("Kafka Spark Streaming Avro example") \
-    #                   .getOrCreate()
-
-    # streaming_context = StreamingContext(sparkContext=session.sparkContext,
-    #                                     batchDuration=5)
-
-    # kafka_stream = KafkaUtils.createDirectStream(ssc=streaming_context,
-    #                                             topics=['your_topic_1', 'your_topic_2'],
-    #                                             kafkaParams={"metadata.broker.list": "your_kafka_broker_1,your_kafka_broker_2"},
-    #                                             valueDecoder=decoder)
-
     spark = (
         SparkSession.builder.master("local[*]")
         .config(
@@ -52,7 +37,7 @@ def main():
             .readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", "http://localhost:9092") \
-            .option("subscribe", "avro_streaming_gh_events") \
+            .option("subscribe", "streaming_gh_events") \
             .load()
             # .select(
             #     from_avro(
@@ -61,7 +46,16 @@ def main():
             #         schemaRegistryAddress = "http://schema-registry:8081"
             #     ).alias("value")
             # )
-    query = df.writeStream.format("console").start()
+    
+    bucket = "gh-archive-sample-data"
+    folder_name = "2015-01-02"
+    outputPath = f"s3a://{bucket}/{folder_name}"
+    # query = df.writeStream.format("console").start()
+    query = df.writeStream\
+        .format("delta")\
+        .outputMode("append")\
+        .option("checkpointLocation", "/tmp/delta/events/_checkpoints/")\
+        .toTable(outputPath)
     import time
     time.sleep(60) # sleep 10 seconds
     query.stop()
