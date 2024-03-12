@@ -285,7 +285,7 @@ Initially, I implemented PyFlink to manage the data stream. However, challenges 
 ### [Writing a Kafka Stream to Delta Lake with Spark Structured Streaming](https://delta.io/blog/write-kafka-stream-to-delta-lake/)
 My current approach involves employing Spark for continuous reading from a streaming Kafka source and writing to a Delta Lake table,  which requires a cluster that’s always running. Alternatively, a more cost-effective approach involves periodic provisioning of a new cluster for incremental processing of new data from the Kafka stream.
 
-Streaming data from Kafka to Delta tables can cause lots of small files, especially when the latency is low and/or the Delta table uses a Hive-style partition key that’s not conducive for streaming. To address this, it's advisable to explore the use of the optimize command, as recommended by Delta Lake. ([link](https://delta.io/blog/2023-01-25-delta-lake-small-file-compaction-optimize/))
+In addition, streaming data from Kafka to Delta tables can cause lots of small files, especially when the latency is low and/or the Delta table uses a Hive-style partition key that’s not conducive for streaming. To address this, it's advisable to explore the use of the optimize command, as recommended by Delta Lake. ([link](https://delta.io/blog/2023-01-25-delta-lake-small-file-compaction-optimize/))
 
 ## Further actions 
 1. Reimplement Flink Datastream using Java/Scala to resolve the limit of PyFlink with Avro Serialization/Deserialization and Delta Lake Table Sink.
