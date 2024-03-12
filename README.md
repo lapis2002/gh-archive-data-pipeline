@@ -192,17 +192,31 @@ folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
 #### Main Tasks
 **`download_to_bronze`**
 
+`get_file_path` task retrieve datetime information, dynamically organizes and creates folders based on Airflow variables. Following this, `download_to_bronze` task is responsible for downloading data from the GitHub Archive, decompressing content, and storing the processed data in the designated local storage. 
+
 **`load_to_silver`**
 
-Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because, when reading Parquet files, all columns are automatically made nullable to ensure compatibility, leading to the observed behavior.
+`setup_minio` task creates a MinIO client to check for the existence of a bucket, creating one if necessary. Once both `setup_minio` and `download_to_bronze` tasks are completed, the subsequent `load_to_silver` task takes over, reads the JSON data and writes it to a Delta Lake table in specified bucket within the MinIO object storage using Spark.
+
+Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because when reading Parquet files, all columns are automatically made nullable to ensure compatibility, leading to the observed behavior.
+
 ![MinIO](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/380aa2b9-0ae9-4226-829f-e82bd1dc8a96)
 
 **`write_tables_in_gold`**
 
-### Monitoring
+`write_tables_in_gold` task employs Spark to read from the Delta Lake table and writes the data to the corresponding `users`, `repos`, `events`, and `organizations` tables in PostgreSQL. 
+
+### Kafka Producer
+To simulating realistic data streams, Kafka producer generates Avro serialized "fake" messages and sends them to a Kafka topic every 10 seconds, and these messages draw content from a real sample set of data records. The Avro Schema is registered in the schema registry. 
+![Schema_registry](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/e4097967-ae26-44f9-a94c-1356482e0284)
+
+### Spark Structured Streaming
+Spark Structured Streaming is used to continuously process new data from the Kafka stream, deserialize Avro and then write to Delta Lake tables designated buckets within MinIO.
+
+## Monitoring
 To emit metrics from Airflow to Prometheus, we need to setup `statsd`. The `statsd_exporter` aggregates the metrics, converts them to the Prometheus format, and exposes them as a Prometheus endpoint. This endpoint is periodically scraped by the Prometheus server, which persists the metrics in its database. Airflow metrics stored in Prometheus can then be viewed in the Grafana dashboard.
 
-#### Configure Airflow to publish the statsd metrics
+### Configure Airflow to publish the statsd metrics
 Add this configuration to `x-airflow-common`'s `environment` in `airflow-docker-compose.yaml`
 ```yaml
     AIRFLOW__SCHEDULER__STATSD_ON: True
@@ -211,7 +225,7 @@ Add this configuration to `x-airflow-common`'s `environment` in `airflow-docker-
     AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
 ```
 
-#### `statsd_exporter` converts the statsd metrics to Prometheus metrics
+### `statsd_exporter` converts the statsd metrics to Prometheus metrics
 ```yaml
   statsd-exporter:
     image: prom/statsd-exporter
@@ -234,7 +248,7 @@ airflow_dag_data_pipeline_get_file_path_duration_sum 0.050082105
 airflow_dag_data_pipeline_get_file_path_duration_count 1
 ```
 
-#### Prometheus server to collect the metrics
+### Prometheus server to collect the metrics
 ```yaml
 scrape_configs:
   - job_name: 'airflow_metrics'
@@ -246,13 +260,8 @@ scrape_configs:
 Check whether Prometheus is able to scrape metrics from `statsd-exporter` at `http://localhost:9090/targets`
 ![Prometheus](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/5bd36339-9fb5-4f90-8951-fd1329cb2973)
 
-#### Grafana Dashboards
+### Grafana Dashboards
 ![Grafana_dashboard](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/cac20b45-9ac8-4163-bb28-405c7e1a1095)
-
-### Kafka Producer
-![Schema_registry](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/e4097967-ae26-44f9-a94c-1356482e0284)
-
-### Spark Structured Streaming
 
 ## Tear down infrastructure
 To tear down and clean up all the resources, run:
@@ -268,7 +277,7 @@ To tear down and clean up all the resources, run:
 
 ## Design Considerations
 ### Limitation of PyFlink
-Initially, I implemented PyFlink to manage the data stream. However, challenges arose as the data stream encountered errors during the deserialization of Avro Kafka messages (as below). Furthermore, PyFlink lacked the necessary support for sinking the processed data directly into a Delta Lake table. As a result, I opted for the more compatible and feature-rich Spark for our data streaming needs.
+Initially, I implemented PyFlink to manage the data stream. However, challenges arose as the data stream encountered errors during the deserialization of Avro Kafka messages (as below). Furthermore, PyFlink lacked the necessary support for sinking the processed data directly into a Delta Lake table. As a result, I opted for Structured Streaming Spark for data streaming needs.
 
 ![image](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/585fde85-7a90-476b-a92c-d2ced79f2773)
 
