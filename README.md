@@ -189,7 +189,7 @@ airflow_dag_data_pipeline_get_file_path_duration_count 1
 ```
 
 ##### Prometheus server to collect the metrics
-```
+```yaml
 scrape_configs:
   - job_name: 'airflow_metrics'
     static_configs:
@@ -206,6 +206,11 @@ To tear down and clean up all the resources, run:
 ```shell
     make tear-down
 ```
+
+## Design Considerations
+Initially, we contemplated implementing PyFlink to manage the data stream. However, challenges arose as the data stream encountered errors during the deserialization of Avro Kafka messages (as below). Furthermore, PyFlink lacked the necessary support for sinking the processed data directly into a Delta Lake table. As a result, we opted for the more compatible and feature-rich Spark for our data streaming needs.
+
+![image](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/585fde85-7a90-476b-a92c-d2ced79f2773)
 
 ## Further actions 
 1. Reimplement Flink Datastream using Java/Scala to resolve the limit of PyFlink with Avro Serialization/Deserialization and Delta Lake Table Sink.
