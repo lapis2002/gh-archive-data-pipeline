@@ -12,7 +12,9 @@ The primary objective of the project is to design and implement a resilient and 
 ![pipeline](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/74d1ec05-1719-494a-b4b8-f5ad8857d80a)
 
 #### Data Source
+
 **Batch data**
+
 The [GitHub Archive](https://www.gharchive.org/) comprises JSON-encoded events sourced from the GitHub API. These events are organized into hourly archives, making them easily accessible through any HTTP client. 
 | Query                            | Command                                                          |
 |----------------------------------|------------------------------------------------------------------|
@@ -21,7 +23,9 @@ The [GitHub Archive](https://www.gharchive.org/) comprises JSON-encoded events s
 | Activity for all of January 2015 | wget https://data.gharchive.org/2015-01-{01..31}-{0..23}.json.gz |
 
 Data extraction from the [GitHub Archive](https://www.gharchive.org/) is scheduled daily through Apache Airflow.
+
 **Stream data**
+
 A Kafka producer is setup to generate data, simulating real-time events. The messages undergo Avro serialization to minimize their size before being emitted to respective topics at 10-second intervals.
 
 ![Kafka_producer](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/f9b24e48-b390-4140-b031-3017b2a0bd69)
@@ -189,6 +193,7 @@ folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
 **`download_to_bronze`**
 
 **`load_to_silver`**
+
 Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because, when reading Parquet files, all columns are automatically made nullable to ensure compatibility, leading to the observed behavior.
 ![MinIO](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/380aa2b9-0ae9-4226-829f-e82bd1dc8a96)
 
