@@ -64,6 +64,8 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
             )
             sleep(10)
             pass
+        
+    # Load sample dataset from json file
     sample_data = []
     with open("sample_data.json", "r") as file:
         for record in file:
