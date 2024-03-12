@@ -77,6 +77,7 @@ The GitHub Archive data is retrieved, decompressed, and saved as a JSON file in 
 ## Setup
 
 ### Prequisites
+- Python 3.10
 - Kafka
 - Spark 3.3
 - Delta Lake

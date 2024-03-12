@@ -78,7 +78,7 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
         index += 1
 
         # Read columns from schema
-        avro_schema_path = f"{avro_schemas_path}/schema_0.avsc"
+        avro_schema_path = f"{avro_schemas_path}/schema.avsc"
         with open(avro_schema_path, "r") as f:
             parsed_avro_schema = json.loads(f.read())
         # serialize the message data using the schema
