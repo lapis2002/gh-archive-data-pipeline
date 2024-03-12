@@ -92,7 +92,6 @@ make install
 ### Setup data infrastructure local 
 Create `.env` file:
 ```shell
-touch .env
 vim .env
 ```
 
