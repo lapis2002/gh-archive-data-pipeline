@@ -1,4 +1,5 @@
 import io
+import time
 
 
 from schema_registry.client import SchemaRegistryClient, schema
@@ -8,13 +9,15 @@ from pyspark.sql.avro.functions import from_avro
 
 from pyspark.sql import SparkSession
 
-// from connectors import spark_context_manager
+# from connectors import spark_context_manager
+
 
 def get_schema_from_schema_registry(schema_registry_url, schema_registry_subject):
-    sr = SchemaRegistryClient({'url': schema_registry_url})
+    sr = SchemaRegistryClient({"url": schema_registry_url})
     latest_version = sr.get_latest_version(schema_registry_subject)
 
     return sr, latest_version
+
 
 def main():
     # bytes_io = io.BytesIO(msg)
@@ -57,13 +60,14 @@ def main():
             .option("subscribe", "streaming_gh_events") \
             .option("subscribe", "avro_streaming_gh_events") \
             .load()
-            # .select(
-            #     from_avro(
-            #         data = col("value"), 
-            #         subject = "t-value",
-            #         schemaRegistryAddress = "http://schema-registry:8081"
-            #     ).alias("value")
-            # )    
+    
+    # .select(
+    #     from_avro(
+    #         data = col("value"),
+    #         subject = "t-value",
+    #         schemaRegistryAddress = "http://schema-registry:8081"
+    #     ).alias("value")
+    # )
     bucket = "gh-archive-sample-data"
     folder_name = "2015-01-02"
     outputPath = f"s3a://{bucket}/{folder_name}"
@@ -73,8 +77,10 @@ def main():
         .outputMode("append")\
         .option("checkpointLocation", "/tmp/delta/events/_checkpoints/")\
         .toTable(outputPath)
-    import time
-    time.sleep(60) # sleep 10 seconds
+
+    time.sleep(60)  # sleep 10 seconds
     query.stop()
+
+
 if __name__ == "__main__":
     main()
