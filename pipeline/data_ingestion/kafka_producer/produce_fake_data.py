@@ -71,6 +71,7 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
     index = 0
     num_sample_data = len(sample_data)
     while True:
+        # Create new record from the sample dataset
         record = sample_data[index % num_sample_data].copy()
         record["created_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         record["payload"] = ""
