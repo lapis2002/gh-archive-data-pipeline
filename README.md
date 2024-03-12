@@ -169,8 +169,8 @@ We can also access default enviroment variables, such as:
 ```python
 date = datetime.strptime(os.getenv("AIRFLOW_CTX_EXECUTION_DATE"), "%Y-%m-%dT%H:%M:%S.%f%z")
 ```
-#### Passing data among tasks
-Instead of returning and passing arguments between tasks, data are parsing around between tasks using `XComArg`
+#### [Data sharing among tasks](https://docs.astronomer.io/learn/airflow-passing-data-between-tasks)
+Instead of returning and passing arguments between tasks, small-size data are sharing around between tasks using `XComArg`
 ```python
 from airflow.models.xcom_arg import XComArg
 ```
@@ -195,7 +195,7 @@ folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
 
 `setup_minio` task creates a MinIO client to check for the existence of a bucket, creating one if necessary. Once both `setup_minio` and `download_to_bronze` tasks are completed, the subsequent `load_to_silver` task takes over, reads the JSON data and writes it to a Delta Lake table in specified bucket within the MinIO object storage using Spark.
 
-Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because when reading Parquet files, all columns are automatically made nullable to ensure compatibility, leading to the observed behavior.
+Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because when Spark reads Parquet files, all columns are automatically made nullable to ensure compatibility by default ([link](https://spark.apache.org/docs/latest/sql-data-sources-parquet.html)), leading to the observed behavior.
 
 ![MinIO](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/380aa2b9-0ae9-4226-829f-e82bd1dc8a96)
 
