@@ -51,7 +51,14 @@ The primary objective of the project is to design and implement a resilient and 
     └── sample_data
         └── 2015-01-01-15
 ```
+`docker`: Dockerfile and Docker Compose files.
 
+`pipeline`:
+- `airflow`: houses DAG task files and utility files for batch data processing.
+- `connector`: contains a file with code to create a client to MinIO and Spark wrapped in a context manager for resource management and cleanup.
+- `data_ingestion`: includes file for generating fake data stream and Spark structured streaming code to handle streaming data processing.
+
+` resources`: contains sample data and config files.
 ### Data Source
 
 **Batch data**
@@ -76,7 +83,7 @@ The GitHub Archive data is retrieved, decompressed, and saved as a JSON file in 
 
 ## Setup
 
-### Prequisites
+### Prerequisites
 - Python 3.10
 - Kafka
 - Spark 3.3
@@ -268,7 +275,13 @@ To tear down and clean up all the resources, run:
 ```
 ## Results
 ### Connect to Postgres using DBeaver
-![Postgres_DBeaver](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/73fd024b-e931-447d-bbf0-afffe21ded2c)
+Add new connection in DBeaver:
+- Choose Postgres
+- URL: `jdbc:posgresql://localhost:5432/github_archive`
+- Host: `localhost`
+- Port: `5432`
+- Database: `github_archive`
+- User: `k6`/`k6`
 
 ### Query Data
 ![DBeaver](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/84f5cd91-9521-4417-b98f-5d89d928bc1d)
