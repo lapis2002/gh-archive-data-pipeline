@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Repo:
     id: int
     name: str
     url: str
+
 
 @dataclass
 class Actor:
@@ -14,6 +16,7 @@ class Actor:
     url: str
     avatar_url: str
 
+
 @dataclass
 class Org:
     id: int
@@ -21,6 +24,7 @@ class Org:
     gravatar_id: str
     url: str
     avatar_url: str
+
 
 @dataclass
 class Events:

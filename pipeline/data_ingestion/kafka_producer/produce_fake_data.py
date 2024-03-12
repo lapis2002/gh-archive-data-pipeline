@@ -36,6 +36,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+
 def create_topic(admin, topic_name):
     # Create topic if not exists
     try:
@@ -64,7 +65,7 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
             sleep(10)
             pass
     sample_data = []
-    with open('sample_data.json', 'r') as file:
+    with open("sample_data.json", "r") as file:
         for record in file:
             sample_data.append(json.loads(record))
     index = 0
@@ -73,7 +74,6 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
         record = sample_data[index % num_sample_data].copy()
         record["created_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         record["payload"] = ""
-
 
         index += 1
 
@@ -89,8 +89,8 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
         bytes_writer.write(bytes([0]))
 
         # Get topic name for this device
-        topic_name = f'streaming_gh_events'
-        avro_topic_name = f'avro_streaming_gh_events'
+        topic_name = f"streaming_gh_events"
+        avro_topic_name = f"avro_streaming_gh_events"
         # Check if schema exists in schema registry,
         # if not, register one
         schema_version_info = schema_registry_client.check_version(
@@ -104,7 +104,7 @@ def create_streams(servers, avro_schemas_path, schema_registry_client):
             )
         else:
             schema_id = schema_registry_client.register(
-                f"{topic_name}-value", schema.AvroSchema(parsed_avro_schema)
+                f"{avro_topic_name}-value", schema.AvroSchema(parsed_avro_schema)
             )
 
         # Write schema ID

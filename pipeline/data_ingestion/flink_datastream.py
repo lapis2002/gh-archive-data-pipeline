@@ -6,11 +6,18 @@ from pyflink.common.serialization import SimpleStringSchema
 from pyflink.common.typeinfo import Types
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.datastream.connectors.kafka import (
-    KafkaOffsetsInitializer, KafkaRecordSerializationSchema, KafkaSink,
-    KafkaSource)
-from pyflink.datastream.formats.avro import AvroRowSerializationSchema, AvroRowDeserializationSchema
+    KafkaOffsetsInitializer,
+    KafkaRecordSerializationSchema,
+    KafkaSink,
+    KafkaSource,
+)
+from pyflink.datastream.formats.avro import (
+    AvroRowSerializationSchema,
+    AvroRowDeserializationSchema,
+)
 
 JARS_PATH = f"{os.getcwd()}/jars/"
+
 
 def main():
     env = StreamExecutionEnvironment.get_execution_environment()
@@ -61,6 +68,7 @@ def main():
     # env.from_source(source, WatermarkStrategy.no_watermarks(), "Kafka Source").sink_to(sink=sink)
     env.from_source(source, WatermarkStrategy.no_watermarks(), "Kafka Source").print()
     env.execute("flink_datastream")
+
 
 if __name__ == "__main__":
     main()
