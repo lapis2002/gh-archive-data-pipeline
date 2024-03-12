@@ -267,9 +267,16 @@ To tear down and clean up all the resources, run:
 ![DBeaver](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/84f5cd91-9521-4417-b98f-5d89d928bc1d)
 
 ## Design Considerations
+### Limitation of PyFlink
 Initially, I contemplated implementing PyFlink to manage the data stream. However, challenges arose as the data stream encountered errors during the deserialization of Avro Kafka messages (as below). Furthermore, PyFlink lacked the necessary support for sinking the processed data directly into a Delta Lake table. As a result, I opted for the more compatible and feature-rich Spark for our data streaming needs.
 
 ![image](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/585fde85-7a90-476b-a92c-d2ced79f2773)
+
+
+### [Writing a Kafka Stream to Delta Lake with Spark Structured Streaming](https://delta.io/blog/write-kafka-stream-to-delta-lake/)
+Continuous streaming, you need a cluster that’s always running. That is usually more expensive than periodically provisioning a new cluster and incrementally processing the new data. -> Read Kafka stream and write to a Delta Lake table periodically
+
+Streaming data from Kafka to Delta tables can cause lots of small files, especially when the latency is low and/or the Delta table uses a Hive-style partition key that’s not conducive for streaming.-> Consider using `optimize` command as Delta Lake suggests ([link](https://delta.io/blog/2023-01-25-delta-lake-small-file-compaction-optimize/))
 
 ## Further actions 
 1. Reimplement Flink Datastream using Java/Scala to resolve the limit of PyFlink with Avro Serialization/Deserialization and Delta Lake Table Sink.
