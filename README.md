@@ -9,9 +9,10 @@ The primary objective of the project is to design and implement a resilient and 
 ## Design
 
 ### Pipeline 
+![pipeline](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/74d1ec05-1719-494a-b4b8-f5ad8857d80a)
 
 #### Data Source
-##### Batch data
+**Batch data**
 The [GitHub Archive](https://www.gharchive.org/) comprises JSON-encoded events sourced from the GitHub API. These events are organized into hourly archives, making them easily accessible through any HTTP client. 
 | Query                            | Command                                                          |
 |----------------------------------|------------------------------------------------------------------|
@@ -20,8 +21,7 @@ The [GitHub Archive](https://www.gharchive.org/) comprises JSON-encoded events s
 | Activity for all of January 2015 | wget https://data.gharchive.org/2015-01-{01..31}-{0..23}.json.gz |
 
 Data extraction from the [GitHub Archive](https://www.gharchive.org/) is scheduled daily through Apache Airflow.
-
-##### Stream data
+**Stream data**
 A Kafka producer is setup to generate data, simulating real-time events. The messages undergo Avro serialization to minimize their size before being emitted to respective topics at 10-second intervals.
 
 ![Kafka_producer](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/f9b24e48-b390-4140-b031-3017b2a0bd69)
@@ -186,18 +186,18 @@ json_file_name = ti.xcom_pull(task_ids="get_file_path", key="json_file_name")
 folder_name = ti.xcom_pull(task_ids="get_file_path", key="folder_name")
 ```
 #### Main Tasks
-##### `download_to_bronze`
+**`download_to_bronze`**
 
-##### `load_to_silver`
+**`load_to_silver`**
 Initially, I defined a schema that included certain mandatory non-null fields. However, during the process of writing data to the Delta Lake Format using Spark, these fields were automatically converted to nullable. This conversion occurs because, when reading Parquet files, all columns are automatically made nullable to ensure compatibility, leading to the observed behavior.
 ![MinIO](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/380aa2b9-0ae9-4226-829f-e82bd1dc8a96)
 
-##### `write_tables_in_gold`
+**`write_tables_in_gold`**
 
-#### Monitoring
+### Monitoring
 To emit metrics from Airflow to Prometheus, we need to setup `statsd`. The `statsd_exporter` aggregates the metrics, converts them to the Prometheus format, and exposes them as a Prometheus endpoint. This endpoint is periodically scraped by the Prometheus server, which persists the metrics in its database. Airflow metrics stored in Prometheus can then be viewed in the Grafana dashboard.
 
-##### Configure Airflow to publish the statsd metrics
+#### Configure Airflow to publish the statsd metrics
 Add this configuration to `x-airflow-common`'s `environment` in `airflow-docker-compose.yaml`
 ```yaml
     AIRFLOW__SCHEDULER__STATSD_ON: True
@@ -206,7 +206,7 @@ Add this configuration to `x-airflow-common`'s `environment` in `airflow-docker-
     AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
 ```
 
-##### `statsd_exporter` converts the statsd metrics to Prometheus metrics
+#### `statsd_exporter` converts the statsd metrics to Prometheus metrics
 ```yaml
   statsd-exporter:
     image: prom/statsd-exporter
@@ -229,7 +229,7 @@ airflow_dag_data_pipeline_get_file_path_duration_sum 0.050082105
 airflow_dag_data_pipeline_get_file_path_duration_count 1
 ```
 
-##### Prometheus server to collect the metrics
+#### Prometheus server to collect the metrics
 ```yaml
 scrape_configs:
   - job_name: 'airflow_metrics'
@@ -241,7 +241,7 @@ scrape_configs:
 Check whether Prometheus is able to scrape metrics from `statsd-exporter` at `http://localhost:9090/targets`
 ![Prometheus](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/5bd36339-9fb5-4f90-8951-fd1329cb2973)
 
-##### Grafana Dashboards
+#### Grafana Dashboards
 ![Grafana_dashboard](https://github.com/lapis2002/gh-archive-data-pipeline/assets/47402970/cac20b45-9ac8-4163-bb28-405c7e1a1095)
 
 ### Kafka Producer
