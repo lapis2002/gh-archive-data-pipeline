@@ -5,7 +5,7 @@ FROM python:3.8-slim
 COPY kafka_producer/schema.json .
 COPY kafka_producer/sample_data.json .
 
-COPY avro_schemas/schema_0.avsc ./avro_schemas/
+COPY avro_schemas/schema.avsc ./avro_schemas/
 COPY kafka_producer/produce_fake_data.py producer.py
 COPY gh-archive.py ./avro_schemas/
 

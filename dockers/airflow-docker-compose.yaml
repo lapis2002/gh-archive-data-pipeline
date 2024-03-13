@@ -66,6 +66,16 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__STATSD_HOST: statsd-exporter
     AIRFLOW__SCHEDULER__STATSD_PORT: 8125
     AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
+
+    ## ENVIRONMENT VARIABLES FOR AIRFLOW CONFIGURATION
+    AIRFLOW_VAR_POSTGRES_DB: ${POSTGRES_DB:-gh_archive}
+    AIRFLOW_VAR_POSTGRES_USER: ${POSTGRES_USER:-k6}
+    AIRFLOW_VAR_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-k6}
+    AIRFLOW_VAR_MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
+    AIRFLOW_VAR_MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minio_access_key}
+    AIRFLOW_VAR_MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minio_secret_key}
+    AIRFLOW_VAR_MINIO_BUCKET: ${MINIO_BUCKET:-gh-archive-sample-data}
+
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -318,16 +328,6 @@ services:
       - "2376:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  # statsd-exporter:
-  #     container_name: prom-statsd-exporter
-  #     ports:
-  #         - 9123:9102
-  #         - 8125:8125/udp
-  #     volumes:
-  #         - $PWD/airflow/statsd/mapping.yaml:/tmp/mapping.yaml
-  #     image: prom/statsd-exporter
-  #     command: --statsd.mapping-config=/tmp/mapping.yaml --statsd.listen-udp=:8125
-  #         --web.listen-address=:9102
   statsd-exporter:
         image: prom/statsd-exporter
         container_name: airflow-statsd-exporter
