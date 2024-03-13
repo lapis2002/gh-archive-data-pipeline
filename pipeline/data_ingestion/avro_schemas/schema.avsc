@@ -1,0 +1,138 @@
+{
+  "doc": "Schema of GitHub Archive Event.",
+  "fields": [
+    {
+      "name": "type",
+      "type": "string",
+      "description": "https://developer.github.com/v3/activity/events/types/"
+    },
+    {
+      "name": "public",
+      "type": "boolean",
+      "description": "Always true for this dataset since only public activity is recorded."
+    },
+    {
+      "name": "payload",
+      "type": [ "null", "string"],
+      "description": "Event payload in JSON format",
+      "default": null
+    },
+    {
+      "name": "repo",
+      "description": "Repository associated with the event",
+      "type": {
+        "type" : "record",
+        "name" : "AddressUSRecord",
+        "fields" : [
+          {
+            "name": "id",
+            "type": "int",
+            "description": "Numeric ID of the GitHub repository"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "description": "Repository name"
+          },
+          {
+            "name": "url",
+            "type": "string",
+            "description": "Repository URL"
+          }
+        ]
+      }
+    },
+    {
+      "name": "actor",
+      "description": "Actor generating the event",
+      "type": {
+        "type" : "record",
+        "name" : "ActorRecord",
+        "fields" : [
+            { 
+              "name": "id", 
+              "type": "int", 
+              "description": "Numeric ID of the GitHub actor"
+            },
+            {
+              "name": "login", 
+              "type": "string", 
+              "description": "Actor's GitHub login"
+            },
+            {
+              "name": "gravatar_id",
+              "type": ["null", "string"],
+              "description": "Actor's Gravatar ID",
+              "default": null
+            },
+            {
+              "name": "avatar_url",
+              "type": "string",
+              "description": "Actor's Gravatar URL"
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "Actor's profile URL"
+            }
+        ]
+      }
+    },
+    {
+      "name": "org",
+      "description": "GitHub org of the associated repo",
+      "type": ["null", {
+        "type" : "record",
+        "name" : "OrgRecord",
+        "fields" : [
+          {
+            "name": "id",
+            "type": "int",
+            "description": "Numeric ID of the GitHub org"
+          },
+          {
+            "name": "login",
+            "type": "string",
+            "description": "Org's GitHub login"
+          },
+          {
+            "name": "gravatar_id",
+            "type": ["null", "string"],
+            "description": "Actor's Gravatar ID",
+            "default": null
+          },
+          {
+            "name": "avatar_url",
+            "type": "string",
+            "description": "Org's Gravatar URL"
+          },
+          {
+            "name": "url",
+            "type": "string",
+            "description": "Org's profile URL"
+          }
+        ]
+      }],
+      "default": null
+    },
+    {
+      "name": "created_at",
+      "type": "string",
+      "description": "Timestamp of associated event"
+    },
+    {
+      "name": "id",
+      "type": "string",
+      "description": "Unique event ID"
+    },
+    {
+    "name": "other",
+    "type": ["null", "string"],
+    "description": "Unknown fields in JSON format",
+    "default": null
+    }
+  ],
+  "name": "gh_archive",
+  "namespace": "gh_archive.avro",
+  "type": "record"
+}

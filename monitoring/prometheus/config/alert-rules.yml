@@ -1,0 +1,11 @@
+groups:
+  - name: System alerts
+    rules:
+      - alert: NodeOutOfMemory
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Node out of memory
+          description: Node memory has reached {{ humanize $value}}%
