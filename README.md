@@ -1,7 +1,7 @@
 # GitHub Archive Data Pipeline
 
 ## Introduction
-The project embarks on the journey of constructing a comprehensive ELT (Extract, Load, Transform) data pipeline, leveraging a powerful stack of technologies to seamlessly process and analyze data from the GitHub Archive (https://www.gharchive.org/). This endeavor combines the strengths of Pyspark, PostgreSQL, Flink, Kafka, Minio, and Airflow, offering a robust infrastructure for handling data at scale. Monitoring tools such as Prometheus and Grafana are integrated to ensure the health and performance of the data pipeline.
+The project builds a comprehensive ELT (Extract, Load, Transform) data pipeline, leveraging a powerful stack of technologies to seamlessly process and analyze data from the GitHub Archive (https://www.gharchive.org/). This endeavor combines the strengths of Pyspark, PostgreSQL, Flink, Kafka, Minio, and Airflow, offering a robust infrastructure for handling data at scale. Monitoring tools such as Prometheus and Grafana are integrated to ensure the health and performance of the data pipeline.
 
 ## Objectives
 The primary objective of the project is to design and implement a resilient and efficient data pipeline capable of extracting, transforming, and delivering valuable insights from the [GitHub Archive](https://www.gharchive.org/) as well as a simulating "fake" data stream. The core result tables, including `repos`, `users`, `events`, and `organizations`, serve as the foundation for our analytics data dashboard, providing data analysts with a powerful toolset for deriving meaningful insights into GitHub repositories, user activities, events, and collaborative organizations. 
